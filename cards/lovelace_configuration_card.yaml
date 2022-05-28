@@ -1,0 +1,15 @@
+cards:
+  - entities:
+      - entity: input_datetime.hp_envy_5540_this_period_start_date
+      - entity: input_number.hp_envy_5540_pages_at_month_start
+      - entity: sensor.hp_envy_5540_total_pages_printed
+      - entity: input_number.hp_envy_5540_free_pages_remaining_notification
+      - entity: input_select.hp_envy_5540_print_plan
+      - entity: input_number.hp_envy_5540_pages_monthly_allowance
+      - entity: input_number.hp_envy_5540_pages_rollover_allowance
+      - entity: input_number.hp_envy_5540_pages_rollover_monthly_max_allowance
+      - entity: input_number.hp_envy_5540_pages_overprint_block_size
+      - entity: input_number.hp_envy_5540_pages_overprint_block_cost
+    title: HP Envy Instant Ink Configuration
+    type: entities
+type: vertical-stack

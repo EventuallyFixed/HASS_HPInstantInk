@@ -1,0 +1,24 @@
+cards:
+  - entities:
+      - entity: sensor.hp_envy_5540_allowance_days_remaining
+      - entity: sensor.hp_envy_5540_pages_allowance_remaining
+      - entity: sensor.hp_envy_5540_pages_rollover_remaining
+      - entity: sensor.hp_envy_5540_total_free_pages_remaining
+      - entity: sensor.hp_envy_5540_pages_overprint
+      - entity: sensor.hp_envy_5540_pages_overprint_cost
+      - entity: sensor.hp_envy_5540_pages_overprint_remaining
+    title: HP Envy Instant Ink
+    type: entities
+  - cards:
+      - entity: sensor.hp_envy_5540_series_black_ink
+        max: 100
+        min: 0
+        name: Black Ink
+        type: gauge
+      - entity: sensor.hp_envy_5540_series_tri_color_ink
+        max: 100
+        min: 0
+        name: Tri-Colour Ink
+        type: gauge
+    type: horizontal-stack
+type: vertical-stack
