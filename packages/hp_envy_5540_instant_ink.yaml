@@ -70,8 +70,10 @@ input_number:
     step: 1
     icon: mdi:printer
     mode: box
-## The total number of pages printed, to make it easy to set after a reboot
-## E.g. Test prints knock this up by one, but don't count in the plan
+
+## A helper to store the total number of pages printed, to make it set
+## the sensor.hp_envy_5540_total_pages_printed, after a reboot, and if
+## the printer is switched off.
   hp_envy_5540_total_pages_printed_inp:
     name: Set Total Pages Printed
     min: 1
@@ -79,6 +81,26 @@ input_number:
     step: 1
     icon: mdi:printer
     mode: box
+## A helper to store the black ink amount, to make it set the graph
+## after a reboot, and if the printer is switched off.
+  hp_envy_5540_series_black_ink:
+    name: Black Ink
+    min: 0
+    max: 100
+    step: 1
+    icon: mdi:printer
+    mode: box
+    unit_of_measurement: '%'
+## A helper to store the tri-colour ink amount, to make it set the graph
+## after a reboot, and if the printer is switched off.
+  hp_envy_5540_series_tri_color_ink:
+    name: Tri Colour Ink
+    min: 0
+    max: 100
+    step: 1
+    icon: mdi:printer
+    mode: box
+    unit_of_measurement: '%'
 
 # The start date of this period of the print plan
 # SET THIS ONCE FOR THE INAUGURAL RUN, and after then it is set by an automation
@@ -293,6 +315,7 @@ automation:
     entity_id: input_datetime.hp_envy_5540_this_period_start_date
     data_template:
       date: '{{ states(''sensor.date'') }}'
+##################################################################################################################
 - id: '1588925532191'
   alias: HP Envy 5540 Alert if remaining Free Pages count is X pages
   description: Sends an alert if the HP Envy 5540 Free Pages count is 'sensor.hp_envy_5540_free_pages_remaining_notification'
@@ -311,6 +334,49 @@ automation:
     data:
       message: The number of free pages is running low
       title: 'HP Ink: Free Pages alert'
+##################################################################################################################
+- id: '1653739817420'
+  alias: HP Envy 5540 change of Total Pages Printed
+  description: 'Sets the input_number values for
+
+    - Total Pages Printed
+
+    - Black Ink
+
+    - Tri-Colour Ink
+
+
+    These allow current values to show if Home Assistant is rebooted while the printer
+    is switched off'
+  trigger:
+  - platform: template
+    value_template: '{{ states(''sensor.hp_envy_5540_total_pages_printed_xml'') !=
+      "unknown" and states(''sensor.hp_envy_5540_total_pages_printed_xml'')|int !=
+      states(''input_number.hp_envy_5540_total_pages_printed_inp'')|int }}'
+  condition: []
+  action:
+  - service: input_number.set_value
+    data:
+      value: '{{ states("sensor.hp_envy_5540_total_pages_printed")|int }}'
+    target:
+      entity_id: input_number.hp_envy_5540_total_pages_printed_inp
+  - service: input_number.set_value
+    data:
+      value: '{{ states("sensor.hp_envy_5540_series_black_ink")|int }}'
+    target:
+      entity_id: input_number.hp_envy_5540_series_black_ink
+  - service: input_number.set_value
+    data:
+      value: '{{ states("sensor.hp_envy_5540_series_tri_color_ink")|int }}'
+    target:
+      entity_id: input_number.hp_envy_5540_series_tri_color_ink
+  mode: single
+
+
+
+##################################################################################################################
+# Binary Sensor
+##################################################################################################################
 
 binary_sensor:
 - platform: ping

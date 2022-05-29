@@ -10,15 +10,18 @@ cards:
     title: HP Envy Instant Ink
     type: entities
   - cards:
-      - entity: sensor.hp_envy_5540_series_black_ink
+      - entity: input_number.hp_envy_5540_series_black_ink
         max: 100
         min: 0
         name: Black Ink
         type: gauge
-      - entity: sensor.hp_envy_5540_series_tri_color_ink
+        unit: '%'
+      - entity: input_number.hp_envy_5540_series_tri_color_ink
         max: 100
         min: 0
         name: Tri-Colour Ink
         type: gauge
+        unit: '%'
     type: horizontal-stack
 type: vertical-stack
+
