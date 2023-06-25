@@ -231,14 +231,16 @@ sensor:
         {% endif %}
 
 # Scrape sensor for HP Envy 5540 Total Pages Printed
+# - Deprecated as of HA 2022/12: See Scrape Configuration in GitHub README.md
+#
 # YOU WILL NEED TO AMEND THE PRINTER URL
 # YOU MAY NEED TO AMEND THE 'SELECT' - CHECK THE XML FILE OF YOUR PRINTER
-- platform: scrape
-  resource: http://hp-envy.lan/DevMgmt/ProductUsageDyn.xml
-  name: hp_envy_5540_total_pages_printed_xml
-  select: 'dd\:TotalImpressions[PEID="5082"]'
-  value_template: >-
-    {{ value|int(-1) }}
+#- platform: scrape
+#  resource: http://hp-envy.lan/DevMgmt/ProductUsageDyn.xml
+#  name: hp_envy_5540_total_pages_printed_xml
+#  select: 'dd\:TotalImpressions[PEID="5082"]'
+#  value_template: >-
+#    {{ value|int(-1) }}
 
 ##################################################################################################################
 # Alternative sensors using the command line. Do not work in HASSOS
