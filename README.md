@@ -22,7 +22,7 @@ The Scrape Sensor wizard in Integrations should be used as below.
 ![02_Wiz_Page_01_all](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/665e936b-dbcd-489e-8448-cfbd14d4b02e)
 
 ### Wizard Page 3
-![04_Wiz_Page_02_all](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/51e5129a-c017-4506-8af7-5cf7e8c1c7dc)
+![04_Wiz_Page_02_all](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/ed186eae-05cb-44cc-a5fe-03f0cf384e5e)
 
 ### Wizard Page 4
 ![05_Wiz_Page_03_Success](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/2344c559-1e74-486c-a681-0bcd1eb92b6a)
