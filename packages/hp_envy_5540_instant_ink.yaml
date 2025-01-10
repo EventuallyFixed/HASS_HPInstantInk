@@ -127,40 +127,64 @@ input_select:
 sensor:
 - platform: template
   sensors:
-# Total number of bundled plus rollover pages remainig
-    hp_envy_5540_total_free_pages_remaining:
-      friendly_name: "Total Free Pages Remaining"
+    # The number of pages printed, stored in the input_number in case the printer 
+    # is switched off and Home Assistant is restarted
+    #hp_envy_5540_total_pages_printed:                                                                                                                              
+    #  value_template: >-
+    #    {% if states('sensor.hp_envy_5540_total_pages_printed_xml') == 'unavailable' -%}
+    #        {{ states('input_number.hp_envy_5540_total_pages_printed_inp')|int }}
+    #    {%- else -%}
+    #        {{ states('sensor.hp_printer_total_pages')|int }}
+    #    {%- endif %}
+    #
+    # NEW ON 17/12/2024 ################################
+    hp_envy_5540_total_pages_printed:                                                                                                                              
       value_template: >-
-         {{ states('sensor.hp_envy_5540_pages_allowance_remaining')|int + states('sensor.hp_envy_5540_pages_rollover_remaining')|int }}
+        {% if states('sensor.hp_printer_total_pages') == 'unavailable' -%}
+            {{ states('input_number.hp_envy_5540_total_pages_printed_inp')|int }}
+        {%- else -%}
+            {{ states('sensor.hp_printer_total_pages')|int }}
+        {%- endif %}
 
+#
+# The number of allowance pages remaining for this period
+# Calculated when each page is printed, and at the start of each new Instant Ink period
+    hp_envy_5540_pages_allowance_remaining:
+      friendly_name: "Allowance Pages Remaining"
+      value_template: >-
+          {% if states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int >= 0 %}
+            {{ states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int }}
+          {% else %}
+            0
+          {% endif %}
+
+    # Next Renewal Date
+    # WILL NOT WORK FOR 29th, 30th, 31st OF THE MONTH
+    hp_envy_5540_next_renewal_date:
+      friendly_name: HP Envy 5540 Next Renewal Date
+      value_template: >-
+          {% if (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[1]|int + 1 > 12) %}
+            {{ (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[0]|int + 1)|string + "-01-" + states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[2] }}
+          {% else %}
+            {{ states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[0]|int|string + "-" +  ('%02d' % (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[1]|int + 1)) + "-" + states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[2] }}
+          {% endif %}
+
+#
 # Used to track days remaining of HP Ink Printer Pages period
 # Needs to have the date sensors installed as per: https://www.home-assistant.io/integrations
 # Use of sensor.date ought to force a daily update, according to https://www.home-assistant.io/integrations/template/
     hp_envy_5540_allowance_days_remaining:
       friendly_name: "Allowance Days Remaining"
       value_template: >-
-         {{ ((as_timestamp(strptime(states('sensor.hp_envy_5540_next_renewal_date'), '%Y-%m-%d'))|int - as_timestamp(strptime(states('sensor.date'), '%Y-%m-%d'))|int ) / 86400)|int }}
-#
-# The number of allowance pages remaining for this period
-# Calculated when each page is printed, and at the start of each new Instant Ink period
-# "{% (if states('input_datetime.hp_envy_5540_this_period_start_date') %}" is a workaround to set a listener)
-    hp_envy_5540_pages_allowance_remaining:
-      friendly_name: "Allowance Pages Remaining"
-      value_template: >-
-        {% if states('input_datetime.hp_envy_5540_this_period_start_date') %}
-          {% if states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int >= 0 %}
-            {{ states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int }}
-          {% else %}
-            0
-          {% endif %}
-        {% endif %}
+          {{ ((as_timestamp(strptime(states('sensor.hp_envy_5540_next_renewal_date')[0:10], '%Y-%m-%d')) - as_timestamp(strptime(states('sensor.date')[0:10], '%Y-%m-%d')))/84600)|int }}
+
+
 #
 # The number of rollover pages remaining for this period.
 # Calculated when each page is printed, when the Rollover Allowance is reset, and at the start of each new Instant Ink period
     hp_envy_5540_pages_rollover_remaining:
       friendly_name: "Rollover Pages Remaining"
       value_template: >-
-        {% if states('input_datetime.hp_envy_5540_this_period_start_date') %}
           {% if states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int < 0 and states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int + states('input_number.hp_envy_5540_pages_rollover_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int >= 0 %}
             {{ states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int + states('input_number.hp_envy_5540_pages_rollover_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int }}
           {% elif states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('sensor.hp_envy_5540_total_pages_printed')|int < 0 and states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int + states('input_number.hp_envy_5540_pages_rollover_allowance')|int -   states('sensor.hp_envy_5540_total_pages_printed')|int < 0 %}
@@ -168,27 +192,35 @@ sensor:
           {% else %}
             {{ states('input_number.hp_envy_5540_pages_rollover_allowance')|int }}
           {% endif %}
-        {% endif %}
+
+#
+# Total number of bundled plus rollover pages remainig
+    hp_envy_5540_total_free_pages_remaining:
+      friendly_name: "Total Free Pages Remaining"
+      value_template: >-
+          {% if states('sensor.hp_envy_5540_pages_rollover_remaining'),0 != 0 %}
+            {{ states('sensor.hp_envy_5540_pages_allowance_remaining')|int + states('sensor.hp_envy_5540_pages_rollover_remaining')|int }}
+          {% endif %}
+
 #
 # The number pages printed over and above the Monthly Allowance plus the Rollover Allowance
 # Calculated when each page is printed, and at the start of each new Instant Ink period
     hp_envy_5540_pages_overprint:
       friendly_name: "Over Allowance Prints"
       value_template: >-
-        {% if states('input_datetime.hp_envy_5540_this_period_start_date') %}
           {% if states('input_number.hp_envy_5540_pages_at_month_start')|int + states('input_number.hp_envy_5540_pages_monthly_allowance')|int + states('input_number.hp_envy_5540_pages_rollover_allowance')|int < states('sensor.hp_envy_5540_total_pages_printed')|int %}
             {{ states('sensor.hp_envy_5540_total_pages_printed')|int - states('input_number.hp_envy_5540_pages_rollover_allowance')|int - states('input_number.hp_envy_5540_pages_monthly_allowance')|int - states('input_number.hp_envy_5540_pages_at_month_start')|int }}
           {% else %}
             0
           {% endif %}    
-        {% endif %}
+
 # The cost so far of the pages that have been printed over the Allowance plus Rollover
 # Calculated when each page is printed, and at the start of each new Instant Ink period
 # CHANGE THE CURRENCY CODE AS APPROPRIATE
     hp_envy_5540_pages_overprint_cost:
       friendly_name: "Over Allowance Cost"
       value_template: >-
-        {% if states('input_datetime.hp_envy_5540_total_pages_printed') or states('input_datetime.hp_envy_5540_this_period_start_date') %}
+        {% if states('sensor.hp_envy_5540_total_pages_printed') and states('sensor.hp_envy_5540_pages_allowance_remaining') %}
           {% if states('sensor.hp_envy_5540_pages_overprint')|int == 0 %}
             0
           {% elif states('sensor.hp_envy_5540_pages_overprint')|int > 0 and ( (states('sensor.hp_envy_5540_pages_overprint')|int - 1) % states('input_number.hp_envy_5540_pages_overprint_block_size')|int == 0 ) %}
@@ -209,30 +241,9 @@ sensor:
           {{ states('input_number.hp_envy_5540_pages_overprint_block_size')|int - (states('sensor.hp_envy_5540_pages_overprint')|int % states('input_number.hp_envy_5540_pages_overprint_block_size')|int) }}
         {% endif %}    
 
-    # Next Renewal Date
-    # WILL NOT WORK FOR 29th, 30th, 31st OF THE MONTH
-    hp_envy_5540_next_renewal_date:
-      friendly_name: HP Envy 5540 Next Renewal Date
-      value_template: >-
-        {% if (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[1]|int + 1 > 12) %}
-          {{ (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[0]|int + 1)|string + "-01-" + states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[2] }}
-        {% else %}
-          {{ states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[0]|int|string + "-" +  ('%02d' % (states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[1]|int + 1)) + "-" + states('input_datetime.hp_envy_5540_this_period_start_date').split("-")[2] }}
-        {% endif %}
-
-    # The number of pages printed, stored in the input_number in case the printer 
-    # is switched off and Home Assistant is restarted
-    hp_envy_5540_total_pages_printed:                                                                                                                              
-      value_template: >-
-        {% if states('sensor.hp_envy_5540_total_pages_printed_xml') == "unknown" %}
-            {{ states('input_number.hp_envy_5540_total_pages_printed_inp')|int }}
-        {% else %}
-            {{ states('sensor.hp_envy_5540_total_pages_printed_xml')|int }}
-        {% endif %}
 
 # Scrape sensor for HP Envy 5540 Total Pages Printed
-# - Deprecated as of HA 2022/12: See Scrape Configuration in GitHub README.md
-#
+# Scrape Sensor was rewritten in Home Assistant
 # YOU WILL NEED TO AMEND THE PRINTER URL
 # YOU MAY NEED TO AMEND THE 'SELECT' - CHECK THE XML FILE OF YOUR PRINTER
 #- platform: scrape
@@ -263,7 +274,12 @@ sensor:
 #  command: "date -d '{{ states('input_datetime.hp_envy_5540_this_period_start_date') }} 1 month' +%Y-%m-%d"
 #  value_template: "{{ value }}"
 
-
+# NEW SYNTAX FOR COMMAND LINE
+#command_line:
+#  - sensor:
+#      name: "HP Envy 5540 Next Renewal Date"
+#      command: "date -d '{{ states('input_datetime.hp_envy_5540_this_period_start_date') }} 1 month' +%Y-%m-%d"
+#      value_template: "{{ value }}"
 
 
 ##################################################################################################################
@@ -278,7 +294,7 @@ automation:
     Rollover Allowance value for this month - Rollover Remaining to new Maximum Rollover
     Allowance value for this month - Rollover from overprint pages'
   trigger:
-  - at: 00:00:00
+  - at: 00:00:05
     platform: time
   condition:
   - condition: template
@@ -317,6 +333,10 @@ automation:
     entity_id: input_datetime.hp_envy_5540_this_period_start_date
     data_template:
       date: '{{ states(''sensor.date'') }}'
+
+
+# WAS:      date: '{{ states(''sensor.date_time'').split('','')[0] }}'
+
 ##################################################################################################################
 - id: '1588925532191'
   alias: HP Envy 5540 Alert if remaining Free Pages count is X pages
@@ -324,8 +344,8 @@ automation:
     pages
   trigger:
   - platform: template
-    value_template: '{% if states(''sensor.hp_envy_5540_total_free_pages_remaining'')|int
-      == states(''sensor.hp_envy_5540_free_pages_remaining_notification'')|int %}
+    value_template: '{% if states(''sensor.hp_envy_5540_total_free_pages_remaining''),0|int
+      == states(''sensor.hp_envy_5540_free_pages_remaining_notification''),1|int %}
 
       true
 
@@ -352,9 +372,7 @@ automation:
     is switched off'
   trigger:
   - platform: template
-    value_template: '{{ states(''sensor.hp_envy_5540_total_pages_printed_xml'') !=
-      "unknown" and states(''sensor.hp_envy_5540_total_pages_printed_xml'')|int !=
-      states(''input_number.hp_envy_5540_total_pages_printed_inp'')|int }}'
+    value_template: '{{ states("sensor.sensor.hp_printer_total_pages")|default("-1") != "-1" }}'
   condition: []
   action:
   - service: input_number.set_value
@@ -375,14 +393,3 @@ automation:
   mode: single
 
 
-
-##################################################################################################################
-# Binary Sensor
-##################################################################################################################
-
-binary_sensor:
-- platform: ping
-  host: 192.168.1.50
-  name: "hp_envy_5540"
-  count: 2
-  scan_interval: 30    

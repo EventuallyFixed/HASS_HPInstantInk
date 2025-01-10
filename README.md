@@ -2,47 +2,73 @@
 ## Overview
 HP Instant Ink counter for Home Assistant
 
-This is an implementation for Home Assistant, of a page counter for tracking usage of an HP Instant Ink plan.
+This is an implementation for Home Assistant, of a printer-based page counter for tracking usage of an HP Instant Ink plan.
 
-It tracks the number of pages used from the XML page of the printer and, based on that and user-entered details of their plan, automatically monitors the monthly usage of the plan and the overall cost.
+It tracks the number of pages used from the XML page of the printer and, based on that and user-entered details of their plan, monitors the monthly usage of the plan and the overall cost.
 
 ## Usage
-Download the 'packages/hp_envy_5540_instant_ink.yaml' file, and place it in the [packages](https://www.home-assistant.io/docs/configuration/packages/) folder of the configuration area of Home Assistant.
+### Prerequisites
+#### Printer Type
+- The code is written for an HP Envy 5540 printer. It assumes the XML file of the printer is the same for all HP Instant Ink printers. This is likely not to be the case. There is a guide below of what to look for, and what to do, in that case.
+#### Configuration
+The configuration.yaml file must have these two items:
 
-Download the files in the 'cards' folder.  For each file, in the HASS front end, create a new card in yaml mode, and paste in the code. Then commit the card.
+`default_config:`  
+  
+`homeassistant:`  
+`  packages: !include_dir_named packages`
 
-## Scrape Sensor
-The Scrape Sensor wizard in Integrations should be used as below. 
-- It is critical that the Scrape Sensor Entity ID is named exactly as, 'sensor.hp_envy_5540_total_pages_printed_xml', and that the Value Template is, '{{ value|int(-1) }}'
+Explanation:
+- [default_config](https://www.home-assistant.io/integrations/default_config/) configures a default set of integrations for Home Assistant to load.
+- [Packages](https://www.home-assistant.io/docs/configuration/packages/) allow the yaml configuration to be combined into a single folder.
 
-### Wizard Page 1
-![01_Select_Scrape_Integration](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/fab2345e-0fc0-4bf9-876e-c74513e5f9d9)
+## Method
 
-### Wizard Page 2
-![02_Wiz_Page_01_all](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/665e936b-dbcd-489e-8448-cfbd14d4b02e)
+### Files & Folders
+- Place the `custom_components/hp_instant_ink_local` folder and contents within the `custom_components` folder, itself within the `configuration` folder of your Home Assistant.
+- Download the `packages/hp_envy_5540_instant_ink.yaml` file, and place it in the `packages` folder, itself within the `configuration` folder of your Home Assistant.
 
-### Wizard Page 3
-![04_Wiz_Page_02_all](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/ed186eae-05cb-44cc-a5fe-03f0cf384e5e)
+The outcome should look like this:  
+`config/custom_components`  
+`config/custom_components/hp_instant_ink_local`  
+`config/custom_components/hp_instant_ink_local/__init__.py`    
+`config/custom_components/hp_instant_ink_local/manifest.json`  
+`config/custom_components/hp_instant_ink_local/sensor.py`  
+`config/packages`  
+`config/packages/hp_envy_5540_instant_ink.yaml`
 
-### Wizard Page 4
-![05_Wiz_Page_03_Success](https://github.com/EventuallyFixed/HASS_HPInstantInk/assets/39234149/2344c559-1e74-486c-a681-0bcd1eb92b6a)
+### Update the URL to the printer
+- In your favourite text editor, open config/custom_components/sensor.py
+- Find the line beginning:  
+  _RESOURCE = '`http://hp-envy.lan/DevMgmt/ProductUsageDyn.xml`'
+- Replace the URL within the single quotes with the URL of the XML page of your printer.
 
+### Add Sensors
+- Edit your `config/sensors.py` to add the following:
 
+`- platform: hp_instant_ink_local`  
+`  resources:`  
+`    - sp`  
+`    - tp`  
+`    - cr`  
+`    - br`  
 
+### Lovelace Cards
+- Download the files in the 'cards' folder.  
+- For each file, in the HASS front end, create a new card in yaml mode, paste in the code, then commit the card.
 
+## Possible Issues
+If the sensor does not work, check the following  
++ The URL and/or name of the XML page of the printer is correct.
++ Note the XML tag names in which the counters are found.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
+Once the tags have been identified, check in the sensor.py file for these and amend accordingly for the XML path to the correct tags:
+- Subscription Pages:  
+  xml_data = doc["pudyn:ProductUsageDyn"]["pudyn:PrinterSubunit"]["pudyn:SubscriptionImpressions"]
+- Total Pages:  
+  xml_data = doc["pudyn:ProductUsageDyn"]["pudyn:PrinterSubunit"]["dd:TotalImpressions"]["#text"]
+- Colour Ink Percentage Remaining:  
+  xml_data = doc["pudyn:ProductUsageDyn"]["pudyn:ConsumableSubunit"]["pudyn:Consumable"][0]["ConsumableRawPercentageLevelRemaining"]
+- Black Ink Percentage Remaining:  
+  xml_data = doc["pudyn:ProductUsageDyn"]["pudyn:ConsumableSubunit"]["pudyn:Consumable"][1]["ConsumableRawPercentageLevelRemaining"]
+  

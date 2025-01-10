@@ -1,3 +1,4 @@
+type: grid
 cards:
   - entities:
       - entity: sensor.hp_envy_5540_allowance_days_remaining
@@ -7,21 +8,19 @@ cards:
       - entity: sensor.hp_envy_5540_pages_overprint
       - entity: sensor.hp_envy_5540_pages_overprint_cost
       - entity: sensor.hp_envy_5540_pages_overprint_remaining
-    title: HP Envy Instant Ink
     type: entities
+    title: HP Envy 5540 Status
   - cards:
-      - entity: input_number.hp_envy_5540_series_black_ink
+      - entity: sensor.hp_printer_black_remaining
         max: 100
         min: 0
         name: Black Ink
         type: gauge
-        unit: '%'
-      - entity: input_number.hp_envy_5540_series_tri_color_ink
+        unit: "%"
+      - entity: sensor.hp_printer_colour_remaining
         max: 100
         min: 0
         name: Tri-Colour Ink
         type: gauge
-        unit: '%'
+        unit: "%"
     type: horizontal-stack
-type: vertical-stack
-

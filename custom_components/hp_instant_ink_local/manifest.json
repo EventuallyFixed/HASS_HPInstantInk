@@ -1,0 +1,9 @@
+{
+  "domain": "hp_instant_ink_local",
+  "name": "HP Instant Ink Local Printer",
+  "documentation": "https://github.com/custom-components/sensor.hp_instant_ink/blob/master/README.md",
+  "dependencies": [],
+  "codeowners": ["@stierney"],
+  "requirements": [],
+  "version": "0.1.0"
+}
